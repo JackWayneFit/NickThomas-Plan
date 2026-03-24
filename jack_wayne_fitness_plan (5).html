@@ -1259,6 +1259,29 @@
     if (activeBtn) activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     window.scrollTo({ top: document.querySelector('.nav').offsetTop, behavior: 'smooth' });
 
+    // Haptic feedback
+    if (navigator.vibrate) navigator.vibrate(10);
+
+    // Subtle click sound
+    try {
+      if (!window._tickCtx) window._tickCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = window._tickCtx;
+      if (ctx.state === 'suspended') ctx.resume();
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.02, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 8) * 0.3;
+      }
+      const src = ctx.createBufferSource();
+      const gain = ctx.createGain();
+      src.buffer = buf;
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.02);
+      src.connect(gain);
+      gain.connect(ctx.destination);
+      src.start(ctx.currentTime);
+    } catch(e) {}
+
     // Pre-fill Fillout form with today's weight when opening Daily Checklist
     if (id === 'daily') {
       const log = getLog();
