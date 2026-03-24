@@ -1239,6 +1239,30 @@
     document.getElementById(id).classList.add('active');
     event.target.classList.add('active');
     window.scrollTo({ top: document.querySelector('.nav').offsetTop, behavior: 'smooth' });
+
+    // Pre-fill Fillout form with today's weight when opening Daily Checklist
+    if (id === 'daily') {
+      const log = getLog();
+      const today = new Date().toISOString().split('T')[0];
+      const todayEntry = log.find(e => normDate(e.date) === today);
+      const weight = todayEntry ? todayEntry.weight : document.getElementById('weight-input').value || '230';
+      const filloutDiv = document.querySelector('[data-fillout-id="x5RQ3FwELAus"]');
+      if (filloutDiv) {
+        const today_fmt = (d => {const p=d.split('-');return parseInt(p[1])+'/'+parseInt(p[2])+'/'+p[0].substring(2)})(today);
+        filloutDiv.setAttribute('data-fillout-inherit-parameters', '');
+        const newSrc = 'https://forms.fillout.com/t/x5RQ3FwELAus?Weight=' + encodeURIComponent(weight) + '&Date=' + encodeURIComponent(today_fmt);
+        const existing = document.getElementById('fillout-iframe');
+        if (existing) existing.remove();
+        const iframe = document.createElement('iframe');
+        iframe.id = 'fillout-iframe';
+        iframe.src = newSrc;
+        iframe.style.width = '100%';
+        iframe.style.minHeight = '600px';
+        iframe.style.border = 'none';
+        filloutDiv.parentNode.insertBefore(iframe, filloutDiv);
+        filloutDiv.style.display = 'none';
+      }
+    }
   }
 
   // Set today's date
