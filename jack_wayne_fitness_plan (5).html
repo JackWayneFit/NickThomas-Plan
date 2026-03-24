@@ -433,6 +433,18 @@
     text-decoration: none;
   }
 
+  @media (max-width: 600px) {
+    .supp-card {
+      grid-template-columns: 48px 1fr;
+      grid-template-rows: auto auto;
+    }
+    .supp-link {
+      grid-column: 2;
+      text-align: left;
+      margin-top: 8px;
+    }
+  }
+
   .supp-card:hover { border-color: var(--gold); }
 
   .supp-icon {
@@ -1012,7 +1024,7 @@
   </div>
 
   <div class="workout-day">
-    <div class="day-header">Day 1 — Chest & Triceps <span></span></div>
+    <div class="day-header">Day 1 — Chest & Triceps </div>
     <div class="exercise-row"><span class="exercise-name">Incline Treadmill Walk</span><span class="exercise-sets">15–30 min</span><span class="exercise-note">Incline 12 / Speed 3–3.5</span></div>
     <div class="exercise-row"><span class="exercise-name">Flat Bench Press (45s each side)</span><span class="exercise-sets">3 × 10</span><span class="exercise-note">Go heavier once comfortable or have a spotter</span></div>
     <div class="exercise-row"><span class="exercise-name">Incline Bench Press (Smith Machine)</span><span class="exercise-sets">3 × 10</span><span class="exercise-note">Controlled movement</span></div>
@@ -1027,7 +1039,7 @@
   </div>
 
   <div class="workout-day">
-    <div class="day-header">Day 2 — Back & Biceps <span>Full stretch on every pull</span></div>
+    <div class="day-header">Day 2 — Back & Biceps </div>
     <div class="exercise-row"><span class="exercise-name">Incline Treadmill Walk</span><span class="exercise-sets">15–30 min</span><span class="exercise-note">Incline 12 / Speed 3–3.5</span></div>
     <div class="exercise-row"><span class="exercise-name">Lat Pulldowns (wide grip)</span><span class="exercise-sets">3 × 10</span><span class="exercise-note">Full stretch at top</span></div>
     <div class="exercise-row"><span class="exercise-name">Seated Cable Rows</span><span class="exercise-sets">3 × 10</span><span class="exercise-note">Squeeze at peak contraction</span></div>
@@ -1041,7 +1053,7 @@
   </div>
 
   <div class="workout-day">
-    <div class="day-header">Day 3 — Shoulders, Legs & Cardio <span>Low impact — protect Achilles</span></div>
+    <div class="day-header">Day 3 — Shoulders, Legs & Cardio </div>
     <div class="exercise-row"><span class="exercise-name">Incline Treadmill Walk</span><span class="exercise-sets">15–30 min</span><span class="exercise-note">Incline 12 / Speed 3–3.5</span></div>
     <div class="exercise-row"><span class="exercise-name">DB Side Lateral Raises</span><span class="exercise-sets">3 × 10</span><span class="exercise-note">Lightweight, strict form</span></div>
     <div class="exercise-row"><span class="exercise-name">DB Front Lateral Raises</span><span class="exercise-sets">3 × 10</span><span class="exercise-note">Controlled</span></div>
@@ -1054,7 +1066,7 @@
   </div>
 
   <div class="workout-day">
-    <div class="day-header">Sunday — Cardio & Recovery <span>Reset for the week</span></div>
+    <div class="day-header">Sunday — Cardio & Recovery </div>
     <div class="exercise-row"><span class="exercise-name">Yoga or Mobility Session</span><span class="exercise-sets">30–60 min</span><span class="exercise-note">Flexibility & recovery focus</span></div>
     <div class="exercise-row"><span class="exercise-name">Light Cardio / Outdoor Walk</span><span class="exercise-sets">20–30 min</span><span class="exercise-note">Stay moving</span></div>
   </div>
@@ -1297,6 +1309,8 @@
     return log
       .filter(e => {
         const d = normDate(e.date);
+        // Filter out invalid weights
+        if (!e.weight || e.weight < 100 || e.weight > 500) return false;
         if (seen[d]) return false;
         seen[d] = true;
         return true;
