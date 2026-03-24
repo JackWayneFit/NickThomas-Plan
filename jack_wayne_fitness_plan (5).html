@@ -1438,6 +1438,24 @@
     const navBtns = document.querySelectorAll('.nav-btn');
     if (navBtns[nextIdx]) navBtns[nextIdx].classList.add('active');
     window.scrollTo({ top: document.querySelector('.nav').offsetTop, behavior: 'smooth' });
+
+    // Haptic feedback
+    if (navigator.vibrate) navigator.vibrate(10);
+
+    // Subtle tick sound
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.05);
+    } catch(e) {}
   }, { passive: true });
 
 </script>
