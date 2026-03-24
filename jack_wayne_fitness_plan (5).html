@@ -1283,20 +1283,18 @@
     const raw = document.getElementById('weight-input').value;
     const w = Math.round(parseFloat(raw) * 10) / 10;
     const d = normDate(document.getElementById('date-input').value);
-    const n = (document.getElementById('note-input').value || '').trim();
     if (!w || w <= 0 || !d) return;
 
     let log = getLog();
     // Remove any existing entry for this exact date
     log = log.filter(e => normDate(e.date) !== d);
     // Add new entry
-    log.push({ weight: w, date: d, note: n });
+    log.push({ weight: w, date: d, note: '' });
     // Sort newest first
     log = dedup(log);
     saveLog(log);
 
     document.getElementById('weight-input').value = '230';
-    document.getElementById('note-input').value = '';
     renderLog();
   }
 
