@@ -289,15 +289,16 @@
   .card-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     padding: 12px 0;
     border-bottom: 1px solid var(--gray-mid);
     font-size: 14px;
+    gap: 16px;
   }
 
   .card-row:last-child { border-bottom: none; }
-  .card-row-label { color: #888; }
-  .card-row-value { color: var(--white); font-weight: 500; }
+  .card-row-label { color: #888; flex-shrink: 0; min-width: 80px; }
+  .card-row-value { color: var(--white); font-weight: 500; text-align: right; }
   .card-row-value.gold { color: var(--gold); }
 
   /* WORKOUT TABLE */
@@ -797,6 +798,9 @@
     .exercise-note { display: none; }
     .log-entry { grid-template-columns: auto 1fr auto; }
     .log-note { display: none; }
+    .card-row { flex-direction: column; gap: 4px; }
+    .card-row-value { text-align: left; }
+    .card-row-label { min-width: unset; }
   }
 </style>
 </head>
