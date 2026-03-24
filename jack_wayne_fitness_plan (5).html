@@ -1397,6 +1397,49 @@
 
   renderLog();
   window.addEventListener('load', function() { if (typeof renderChart === 'function') renderChart(); });
+
+  // SWIPE NAVIGATION FOR MOBILE
+  const sections = ['about', 'plan', 'nutrition', 'workouts', 'supplements', 'tracker', 'daily', 'motivation'];
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchend', function(e) {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+
+    // Only trigger if horizontal swipe is dominant and long enough
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+
+    const activeSection = document.querySelector('.section.active');
+    if (!activeSection) return;
+    const currentIdx = sections.indexOf(activeSection.id);
+    if (currentIdx === -1) return;
+
+    let nextIdx;
+    if (dx < 0) {
+      // Swipe left = next tab
+      nextIdx = Math.min(currentIdx + 1, sections.length - 1);
+    } else {
+      // Swipe right = previous tab
+      nextIdx = Math.max(currentIdx - 1, 0);
+    }
+
+    if (nextIdx === currentIdx) return;
+
+    const nextId = sections[nextIdx];
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(nextId).classList.add('active');
+    const navBtns = document.querySelectorAll('.nav-btn');
+    if (navBtns[nextIdx]) navBtns[nextIdx].classList.add('active');
+    window.scrollTo({ top: document.querySelector('.nav').offsetTop, behavior: 'smooth' });
+  }, { passive: true });
+
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
