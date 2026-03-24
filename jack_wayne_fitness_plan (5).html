@@ -1165,7 +1165,7 @@
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Weight (lbs)</label>
-        <input type="number" class="form-input" id="weight-input" placeholder="230" step="0.1">
+        <input type="number" class="form-input" id="weight-input" placeholder="230.0" step="0.1" min="100" max="400" type="number" value="230">
       </div>
       <div class="form-group">
         <label class="form-label">Date</label>
@@ -1179,7 +1179,11 @@
     <button class="btn-gold" onclick="logWeight()">Log Weight</button>
   </div>
 
-  <div id="log-list"></div>
+  <div id="log-list" style="display:none;"></div>
+  <div style="background: var(--gray); border: 1px solid var(--gray-mid); padding: 24px; margin-top: 24px;">
+    <canvas id="weight-chart" height="300"></canvas>
+    <div id="no-data-msg" style="text-align:center;color:#555;padding:40px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.2em;">NO ENTRIES YET — LOG YOUR FIRST WEIGH-IN</div>
+  </div>
 </div>
 
 <!-- DAILY CHECKLIST -->
@@ -1254,10 +1258,11 @@
   const goalWeight = 209;
 
   function logWeight() {
-    const w = parseFloat(document.getElementById('weight-input').value);
+    const raw = document.getElementById('weight-input').value;
+    const w = Math.round(parseFloat(raw) * 10) / 10;
     const d = document.getElementById('date-input').value;
     const n = document.getElementById('note-input').value;
-    if (!w || !d) return;
+    if (!w || w <= 0 || !d) return;
     weightLog.unshift({ weight: w, date: d, note: n });
     localStorage.setItem('weightLog', JSON.stringify(weightLog));
     document.getElementById('weight-input').value = '';
@@ -1311,6 +1316,76 @@
   renderLog();
 </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js" onload="renderChart()"></script>
+<script>
+  let weightChart = null;
+
+  function renderChart() {
+    const canvas = document.getElementById('weight-chart');
+    const noData = document.getElementById('no-data-msg');
+    
+    if (weightLog.length === 0) {
+      canvas.style.display = 'none';
+      noData.style.display = 'block';
+      return;
+    }
+
+    canvas.style.display = 'block';
+    noData.style.display = 'none';
+
+    const sorted = [...weightLog].reverse();
+    const labels = sorted.map(e => e.date);
+    const data = sorted.map(e => e.weight);
+
+    if (weightChart) weightChart.destroy();
+
+    weightChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Weight (lbs)',
+          data,
+          borderColor: '#c9a84c',
+          backgroundColor: 'rgba(201,168,76,0.1)',
+          borderWidth: 2,
+          pointBackgroundColor: '#c9a84c',
+          pointRadius: 4,
+          tension: 0.3,
+          fill: true
+        }, {
+          label: 'Goal (209 lbs)',
+          data: Array(labels.length).fill(209),
+          borderColor: '#4caf7d',
+          borderWidth: 1,
+          borderDash: [6, 3],
+          pointRadius: 0,
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: { color: '#888', font: { family: 'DM Sans' } }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#888', font: { family: 'DM Mono', size: 10 } },
+            grid: { color: '#2e2e2e' }
+          },
+          y: {
+            ticks: { color: '#888', font: { family: 'DM Mono', size: 10 } },
+            grid: { color: '#2e2e2e' },
+            suggestedMin: 200,
+            suggestedMax: 235
+          }
+        }
+      }
+    });
+  }
+</script>
 <script src="https://server.fillout.com/embed/v1/"></script>
 </body>
 </html>
