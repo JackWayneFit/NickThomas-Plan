@@ -1172,10 +1172,6 @@
         <input type="date" class="form-input" id="date-input">
       </div>
     </div>
-    <div class="form-group" style="margin-bottom: 12px;">
-      <label class="form-label">Note (optional)</label>
-      <input type="text" class="form-input" id="note-input" placeholder="How are you feeling today?">
-    </div>
     <button class="btn-gold" onclick="logWeight()">Log Weight</button>
   </div>
 
@@ -1253,30 +1249,73 @@
   }
 
   // WEIGHT TRACKER
-  let weightLog = JSON.parse(localStorage.getItem('weightLog') || '[]');
   const startWeight = 230;
   const goalWeight = 209;
+
+  function getLog() {
+    return JSON.parse(localStorage.getItem('weightLog') || '[]');
+  }
+
+  function saveLog(log) {
+    localStorage.setItem('weightLog', JSON.stringify(log));
+  }
+
+  function normDate(d) {
+    return String(d).substring(0, 10);
+  }
+
+  function dedup(log) {
+    const seen = {};
+    return log
+      .filter(e => {
+        const d = normDate(e.date);
+        if (seen[d]) return false;
+        seen[d] = true;
+        return true;
+      })
+      .sort((a, b) => normDate(b.date).localeCompare(normDate(a.date)));
+  }
+
+  // Clean on load
+  saveLog(dedup(getLog()));
 
   function logWeight() {
     const raw = document.getElementById('weight-input').value;
     const w = Math.round(parseFloat(raw) * 10) / 10;
-    const d = document.getElementById('date-input').value;
-    const n = document.getElementById('note-input').value;
+    const d = normDate(document.getElementById('date-input').value);
+    const n = (document.getElementById('note-input').value || '').trim();
     if (!w || w <= 0 || !d) return;
-    weightLog.unshift({ weight: w, date: d, note: n });
-    localStorage.setItem('weightLog', JSON.stringify(weightLog));
-    document.getElementById('weight-input').value = '';
+
+    let log = getLog();
+    // Remove any existing entry for this exact date
+    log = log.filter(e => normDate(e.date) !== d);
+    // Add new entry
+    log.push({ weight: w, date: d, note: n });
+    // Sort newest first
+    log = dedup(log);
+    saveLog(log);
+
+    document.getElementById('weight-input').value = '230';
     document.getElementById('note-input').value = '';
     renderLog();
   }
 
   function deleteEntry(index) {
-    weightLog.splice(index, 1);
-    localStorage.setItem('weightLog', JSON.stringify(weightLog));
+    let log = dedup(getLog());
+    log.splice(index, 1);
+    saveLog(log);
     renderLog();
   }
 
+  function clearAllData() {
+    if (confirm('Clear all weight entries? This cannot be undone.')) {
+      localStorage.removeItem('weightLog');
+      renderLog();
+    }
+  }
+
   function renderLog() {
+    const weightLog = dedup(getLog());
     const list = document.getElementById('log-list');
     const current = weightLog.length > 0 ? weightLog[0].weight : startWeight;
     const lost = +(startWeight - current).toFixed(1);
@@ -1290,7 +1329,8 @@
     document.getElementById('progress-pct').textContent = pct + '% complete';
 
     if (weightLog.length === 0) {
-      list.innerHTML = '<div style="text-align:center;color:#555;padding:40px;font-family:DM Mono,monospace;font-size:12px;letter-spacing:0.2em;">NO ENTRIES YET — LOG YOUR FIRST WEIGH-IN</div>';
+      list.innerHTML = '<div style="text-align:center;color:#555;padding:40px;font-family:DM Mono,monospace;font-size:12px;letter-spacing:0.2em;">NO ENTRIES YET</div>';
+      if (typeof renderChart === 'function') renderChart();
       return;
     }
 
@@ -1304,23 +1344,27 @@
         else changeHTML = `<span class="log-change same">—</span>`;
       }
       return `<div class="log-entry">
-        <span class="log-date">${e.date}</span>
+        <span class="log-date">${(d => {const p=d.split('-');return parseInt(p[1])+'/'+parseInt(p[2])+'/'+p[0].substring(2)})(e.date)}</span>
         <span class="log-weight">${e.weight} lbs</span>
         ${changeHTML}
         <span class="log-note">${e.note || ''}</span>
         <button class="log-delete" onclick="deleteEntry(${i})">✕</button>
       </div>`;
     }).join('');
+
+    if (typeof renderChart === 'function') renderChart();
   }
 
   renderLog();
+  window.addEventListener('load', function() { if (typeof renderChart === 'function') renderChart(); });
 </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js" onload="renderChart()"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
   let weightChart = null;
 
   function renderChart() {
+    const weightLog = dedup(getLog());
     const canvas = document.getElementById('weight-chart');
     const noData = document.getElementById('no-data-msg');
     
@@ -1334,7 +1378,10 @@
     noData.style.display = 'none';
 
     const sorted = [...weightLog].reverse();
-    const labels = sorted.map(e => e.date);
+    const labels = sorted.map(e => {
+      const parts = e.date.split('-');
+      return parseInt(parts[1]) + '/' + parseInt(parts[2]) + '/' + parts[0].substring(2);
+    });
     const data = sorted.map(e => e.weight);
 
     if (weightChart) weightChart.destroy();
