@@ -1220,7 +1220,7 @@
     <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-label">Progress picture taken</div></div>
   </div>
 
-  <a href="https://docs.google.com/forms/d/e/1FAIpQLSe8DpFH_xwgV8ttqYs7Vw04t7dQ27nnn7k-VYJmqGVPbdpEbQ/viewform" target="_blank" style="display:block; background: var(--gold); color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.1em; padding: 14px 32px; text-align: center; text-decoration: none; margin-top: 8px; margin-bottom: 8px;">Submit Daily Log to Coach</a>
+  <button class="btn-gold" onclick="submitToGoogle()" style="margin-top: 8px; margin-bottom: 8px;">Submit Daily Log to Coach</button>
   <button class="btn-gold" onclick="resetChecklist()" style="margin-top: 0; background: #2e2e2e; color: #888; border: 1px solid #444;">Reset Checklist for New Day</button>
   <div id="submit-msg" style="display:none; margin-top: 16px; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.15em; color: #c9a84c; text-align: center;">→ FORM OPENED IN NEW TAB — HIT SUBMIT THERE TO SEND TO JACK</div>
 
@@ -1312,6 +1312,67 @@
   }
 
   function resetChecklist() {
+    document.querySelectorAll('.check-item').forEach(el => {
+      el.classList.remove('checked');
+      el.querySelector('.check-box').textContent = '';
+    });
+  }
+
+  function submitToGoogle() {
+    const base = 'https://docs.google.com/forms/d/e/1FAIpQLSe8DpFH_xwgV8ttqYs7Vw04t7dQ27nnn7k-VYJmqGVPbdpEbQ/viewform';
+    
+    // Date
+    const today = new Date();
+    const dateStr = (today.getMonth()+1) + '/' + today.getDate() + '/' + today.getFullYear();
+    
+    // Weight from tracker
+    const currentWeight = document.getElementById('current-weight').textContent.trim() || '230';
+    
+    // Get all checked labels
+    const checked = Array.from(document.querySelectorAll('.check-item.checked .check-label')).map(el => el.textContent.trim());
+    
+    // Map to form entry IDs
+    const trainingMap = {
+      'Workout completed': 'Workout completed',
+      'Stretched': 'Stretched',
+      'Ab work done': 'Ab work done',
+      'Sauna / cold plunge or shower': 'Sauna / cold plunge or shower'
+    };
+    const nutritionMap = {
+      'Under 2,200 calories today': 'Under 2,200 calories',
+      '160g+ protein hit': '160g+ protein hit',
+      'Under 40g carbs': 'Under 40g carbs',
+      'At least 1 gallon of water': 'At least 1 gallon of water',
+      'No alcohol today': 'No alcohol today',
+      'No food after 10pm': 'No food after 10pm'
+    };
+    const suppMap = {
+      'Protein — 1-2 scoops Equip, ideally right after workout': 'Protein 1-2 scoops',
+      'Creatine HMB — 7-9 grams, even rest days': 'Creatine 7-9 grams',
+      'Electrolytes consumed': 'Electrolytes consumed',
+      'Magnesium taken before bed': 'Magnesium before bed'
+    };
+    const recovMap = {
+      '6-8 hours of sleep': '6-8 hours of sleep',
+      "Logged today's weight in the tracker": 'Logged weight in tracker',
+      'Progress picture taken': 'Progress picture taken'
+    };
+    
+    let url = base + '?usp=pp_url';
+    url += '&entry.317261255=' + encodeURIComponent(dateStr);
+    url += '&entry.2141472671=' + encodeURIComponent(currentWeight);
+    
+    checked.forEach(label => {
+      if (trainingMap[label]) url += '&entry.131331482=' + encodeURIComponent(trainingMap[label]);
+      if (nutritionMap[label]) url += '&entry.1457399788=' + encodeURIComponent(nutritionMap[label]);
+      if (suppMap[label]) url += '&entry.1281801083=' + encodeURIComponent(suppMap[label]);
+      if (recovMap[label]) url += '&entry.353114333=' + encodeURIComponent(recovMap[label]);
+    });
+    
+    window.open(url, '_blank');
+  }
+
+    function resetChecklist() {
     document.querySelectorAll('.check-item').forEach(el => {
       el.classList.remove('checked');
       el.querySelector('.check-box').textContent = '';
