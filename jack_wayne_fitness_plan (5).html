@@ -1187,7 +1187,6 @@
   <div class="section-label">Accountability</div>
   <div class="section-title">Daily<br>Checklist</div>
   <div style="width:100%;min-height:600px;" data-fillout-id="x5RQ3FwELAus" data-fillout-embed-type="standard" data-fillout-inherit-parameters data-fillout-dynamic-resize></div>
-  <script src="https://server.fillout.com/embed/v1/"></script>
 </div>
 
 <div class="section" id="motivation">
@@ -1232,5 +1231,86 @@
     Every single one of those days had moments where quitting felt easier. The difference between where you are and where you want to be is just showing up anyway. Get back to it.
   </div>
 </div>
+<script>
+  // NAV
+  function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+    window.scrollTo({ top: document.querySelector('.nav').offsetTop, behavior: 'smooth' });
+  }
+
+  // Set today's date
+  const dateInput = document.getElementById('date-input');
+  if (dateInput) {
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+  }
+
+  // WEIGHT TRACKER
+  let weightLog = JSON.parse(localStorage.getItem('weightLog') || '[]');
+  const startWeight = 230;
+  const goalWeight = 209;
+
+  function logWeight() {
+    const w = parseFloat(document.getElementById('weight-input').value);
+    const d = document.getElementById('date-input').value;
+    const n = document.getElementById('note-input').value;
+    if (!w || !d) return;
+    weightLog.unshift({ weight: w, date: d, note: n });
+    localStorage.setItem('weightLog', JSON.stringify(weightLog));
+    document.getElementById('weight-input').value = '';
+    document.getElementById('note-input').value = '';
+    renderLog();
+  }
+
+  function deleteEntry(index) {
+    weightLog.splice(index, 1);
+    localStorage.setItem('weightLog', JSON.stringify(weightLog));
+    renderLog();
+  }
+
+  function renderLog() {
+    const list = document.getElementById('log-list');
+    const current = weightLog.length > 0 ? weightLog[0].weight : startWeight;
+    const lost = +(startWeight - current).toFixed(1);
+    const toGoal = +(current - goalWeight).toFixed(1);
+    const pct = Math.min(100, Math.max(0, +((lost / (startWeight - goalWeight)) * 100).toFixed(1)));
+
+    document.getElementById('current-weight').textContent = current;
+    document.getElementById('total-lost').textContent = lost > 0 ? lost : 0;
+    document.getElementById('to-goal').textContent = toGoal > 0 ? toGoal : 0;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-pct').textContent = pct + '% complete';
+
+    if (weightLog.length === 0) {
+      list.innerHTML = '<div style="text-align:center;color:#555;padding:40px;font-family:DM Mono,monospace;font-size:12px;letter-spacing:0.2em;">NO ENTRIES YET — LOG YOUR FIRST WEIGH-IN</div>';
+      return;
+    }
+
+    list.innerHTML = weightLog.map((e, i) => {
+      const prev = weightLog[i + 1];
+      let changeHTML = '';
+      if (prev) {
+        const diff = +(e.weight - prev.weight).toFixed(1);
+        if (diff < 0) changeHTML = `<span class="log-change down">↓ ${Math.abs(diff)}</span>`;
+        else if (diff > 0) changeHTML = `<span class="log-change up">↑ ${diff}</span>`;
+        else changeHTML = `<span class="log-change same">—</span>`;
+      }
+      return `<div class="log-entry">
+        <span class="log-date">${e.date}</span>
+        <span class="log-weight">${e.weight} lbs</span>
+        ${changeHTML}
+        <span class="log-note">${e.note || ''}</span>
+        <button class="log-delete" onclick="deleteEntry(${i})">✕</button>
+      </div>`;
+    }).join('');
+  }
+
+  renderLog();
+</script>
+
+<script src="https://server.fillout.com/embed/v1/"></script>
 </body>
 </html>
