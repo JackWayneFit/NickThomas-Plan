@@ -1254,6 +1254,9 @@
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     event.target.classList.add('active');
+    // Scroll active nav button into view
+    const activeBtn = document.querySelector('.nav-btn.active');
+    if (activeBtn) activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     window.scrollTo({ top: document.querySelector('.nav').offsetTop, behavior: 'smooth' });
 
     // Pre-fill Fillout form with today's weight when opening Daily Checklist
@@ -1436,7 +1439,10 @@
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(nextId).classList.add('active');
     const navBtns = document.querySelectorAll('.nav-btn');
-    if (navBtns[nextIdx]) navBtns[nextIdx].classList.add('active');
+    if (navBtns[nextIdx]) {
+      navBtns[nextIdx].classList.add('active');
+      navBtns[nextIdx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
     window.scrollTo({ top: document.querySelector('.nav').offsetTop, behavior: 'smooth' });
 
     // Haptic feedback
